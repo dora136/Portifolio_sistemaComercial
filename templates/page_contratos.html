@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block page_id %}contratos{% endblock %}
+{% block title %}Contratos - NovaCRM{% endblock %}
+
+{% block content %}
+<div class="ctr-layout">
+  <section class="ctr-page">
+
+    <div class="ctr-header">
+      <div>
+        <span class="ctr-kicker">Financeiro</span>
+        <h1>Contratos</h1>
+        <p>Visão geral de todos os contratos financeiros do ecossistema.</p>
+      </div>
+      <div class="ctr-header-actions">
+        <div class="ctr-search-wrap">
+          <i data-lucide="search"></i>
+          <input type="text" id="ctrSearch" placeholder="Buscar por lead, parceiro, CNPJ..." />
+        </div>
+        <select id="ctrFilterSolucao" class="ctr-select">
+          <option value="todos">Todas as Soluções</option>
+          {% for sol in solucoes_lista %}
+          <option value="{{ sol }}">{{ sol }}</option>
+          {% endfor %}
+        </select>
+        <select id="ctrFilterStatus" class="ctr-select">
+          <option value="todos">Todos os Status</option>
+          <option value="Em dia">Em dia</option>
+          <option value="Quitado">Quitado</option>
+          <option value="Atrasado">Atrasado</option>
+          <option value="Pendente">Pendente</option>
+        </select>
+        <select id="ctrFilterTipo" class="ctr-select">
+          <option value="todos">Entradas + Saídas</option>
+          <option value="entrada">Entradas</option>
+          <option value="saida">Saídas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="ctr-kpi-row">
+      <div class="ctr-kpi"><i data-lucide="file-text"></i><div><span class="ctr-kpi-val">{{ total_contratos }}</span><span class="ctr-kpi-lbl">Contratos</span></div></div>
+      <div class="ctr-kpi"><i data-lucide="arrow-down-left" style="color:hsl(142,71%,45%)"></i><div><span class="ctr-kpi-val">{{ total_entradas }}</span><span class="ctr-kpi-lbl">Entradas</span></div></div>
+      <div class="ctr-kpi"><i data-lucide="arrow-up-right" style="color:hsl(0,72%,51%)"></i><div><span class="ctr-kpi-val">{{ total_saidas }}</span><span class="ctr-kpi-lbl">Saídas</span></div></div>
+      <div class="ctr-kpi"><i data-lucide="trending-up" style="color:hsl(142,71%,45%)"></i><div><span class="ctr-kpi-val">R$ {{ "{:,.0f}".format(receita_total).replace(",", ".") }}</span><span class="ctr-kpi-lbl">Receita Total</span></div></div>
+      <div class="ctr-kpi ctr-kpi-status">
+        <span class="ctr-status-dot ctr-dot-green"></span><span>{{ status_counts.get('Em dia', 0) }} em dia</span>
+        <span class="ctr-status-dot ctr-dot-blue"></span><span>{{ status_counts.get('Quitado', 0) }} quitados</span>
+        <span class="ctr-status-dot ctr-dot-red"></span><span>{{ status_counts.get('Atrasado', 0) }} atrasados</span>
+      </div>
+    </div>
+
+    <div class="ctr-grid" id="ctrGrid">
+      {% for c in contratos %}
+      {% set receita = c.campos.receita if c.campos and c.campos.receita else 0 %}
+      {% set parcelas_pagas = c.parcelas | selectattr('status_parcela', 'equalto', 1) | list | length %}
+      {% set parcelas_total = c.parcelas | length %}
+      {% set tipo = 'saida' if c.id_solucao == 1 else 'entrada' %}
+      <div class="ctr-card" data-id="{{ c.id_contrato }}" data-status="{{ c.status }}" data-tipo="{{ tipo }}" data-solucao="{{ c.nome_solucao or '' }}" data-search="{{ (c.lead_nome or '') | lower }} {{ (c.parceiro_nome or '') | lower }} {{ (c.nome_solucao or '') | lower }} {{ (c.lead_cnpj or '') | lower }}">
+        <div class="ctr-card-top">
+          <span class="ctr-card-id">#{{ c.id_contrato }}</span>
+          <span class="ctr-badge ctr-badge-{{ c.status | lower | replace(' ', '-') }}">{{ c.status }}</span>
+        </div>
+        <div class="ctr-card-lead">
+          <h3>{{ c.lead_nome or c.lead_razao_social or 'Sem lead' }}</h3>
+          {% if c.lead_cnpj %}<span class="ctr-card-cnpj">{{ c.lead_cnpj }}</span>{% endif %}
+        </div>
+        <div class="ctr-card-tags">
+          <span class="ctr-tag ctr-tag-sol">{{ c.nome_solucao or 'Sem solução' }}</span>
+          <span class="ctr-tag ctr-tag-{{ tipo }}">{{ 'Entrada' if tipo == 'entrada' else 'Saída' }}</span>
+        </div>
+        <div class="ctr-card-value">
+          <span class="ctr-card-amount">R$ {{ "{:,.2f}".format(receita).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+          <div class="ctr-card-parcelas">
+            <div class="ctr-mini-bar"><div class="ctr-mini-bar-fill" style="width:{{ (parcelas_pagas / parcelas_total * 100) if parcelas_total > 0 else 0 }}%"></div></div>
+            <span>{{ parcelas_pagas }}/{{ parcelas_total }}</span>
+          </div>
+        </div>
+        {% if c.parceiro_nome %}
+        <div class="ctr-card-partner"><i data-lucide="building-2"></i><span>{{ c.parceiro_nome }}</span></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="ctr-empty" id="ctrEmpty" style="display:none"><i data-lucide="search-x"></i><p>Nenhum contrato encontrado.</p></div>
+  </section>
+</div>
+
+<!-- Modal -->
+<div class="ctr-modal-overlay" id="ctrModal">
+  <div class="ctr-modal">
+    <div class="ctr-modal-head">
+      <div><h2 id="ctrModalTitle">Contrato</h2><p id="ctrModalSub"></p></div>
+      <button class="ctr-modal-close" id="ctrModalClose" type="button"><i data-lucide="x"></i></button>
+    </div>
+    <div class="ctr-modal-body" id="ctrModalBody"></div>
+    <div class="ctr-modal-foot" id="ctrModalFoot">
+      <button type="button" class="ctr-modal-save-btn" id="ctrSaveAll" disabled>
+        <i data-lucide="save"></i> Salvar Alterações
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  var CONTRATOS = {{ contratos | tojson | safe }};
+  var cMap = {};
+  CONTRATOS.forEach(function(c) { cMap[c.id_contrato] = c; });
+
+  var grid = document.getElementById('ctrGrid');
+  var modal = document.getElementById('ctrModal');
+  var saveAllBtn = document.getElementById('ctrSaveAll');
+  var currentId = null;
+
+  /* ── Filtros ── */
+  var searchInput = document.getElementById('ctrSearch');
+  var fStatus = document.getElementById('ctrFilterStatus');
+  var fTipo = document.getElementById('ctrFilterTipo');
+  var fSol = document.getElementById('ctrFilterSolucao');
+  var emptyEl = document.getElementById('ctrEmpty');
+
+  function applyFilters() {
+    var q = (searchInput.value || '').toLowerCase(), st = fStatus.value, tp = fTipo.value, sl = fSol.value;
+    var vis = 0;
+    grid.querySelectorAll('.ctr-card').forEach(function(c) {
+      var ok = (!q || c.dataset.search.indexOf(q) !== -1)
+            && (st === 'todos' || c.dataset.status === st)
+            && (tp === 'todos' || c.dataset.tipo === tp)
+            && (sl === 'todos' || c.dataset.solucao === sl);
+      c.style.display = ok ? '' : 'none';
+      if (ok) vis++;
+    });
+    emptyEl.style.display = vis ? 'none' : 'flex';
+  }
+  [searchInput, fStatus, fTipo, fSol].forEach(function(el) {
+    el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', applyFilters);
+  });
+
+  /* ── Helpers ── */
+  function fmt(v) { return v == null ? '-' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function esc(v) { var d = document.createElement('div'); d.textContent = v; return d.innerHTML; }
+
+  /* ── Open modal ── */
+  function openModal(id) {
+    var c = cMap[id]; if (!c) return;
+    currentId = id;
+    document.getElementById('ctrModalTitle').textContent = 'Contrato #' + c.id_contrato;
+    document.getElementById('ctrModalSub').textContent = (c.nome_solucao || '') + ' — ' + (c.status || '');
+
+    var h = '';
+
+    /* Dados do contrato editáveis */
+    h += '<div class="ctr-section-title">Dados do Contrato</div>';
+    h += '<div class="ctr-edit-grid">';
+    h += fieldRO('Lead', c.lead_nome || c.lead_razao_social || '-');
+    h += fieldRO('Razão Social', c.lead_razao_social || '-');
+    h += fieldRO('CNPJ', c.lead_cnpj || '-');
+    h += fieldRO('Parceiro', c.parceiro_nome || '-');
+    h += fieldRO('Responsável', c.responsavel_nome || '-');
+    h += fieldRO('Solução', c.nome_solucao || '-');
+    h += fieldRO('Status', c.status || '-');
+    h += '</div>';
+
+    /* Campos extras do infos_json */
+    var campos = (c.infos_json && c.infos_json.campos) || {};
+    var extras = Object.keys(campos).filter(function(k) {
+      return ['receita','coluna_fixa_1','coluna_fixa_2','custo'].indexOf(k) === -1;
+    });
+    if (extras.length > 0 || campos.custo != null) {
+      h += '<div class="ctr-section-title">Campos do Contrato</div>';
+      h += '<div class="ctr-edit-grid">';
+      if (campos.custo != null) {
+        h += field('campo_custo', 'Custo', campos.custo || '', 'text');
+      }
+      extras.forEach(function(k) {
+        h += field('campo_' + k, k, campos[k] || '', 'text');
+      });
+      h += '</div>';
+    }
+
+    /* Modelo contrato */
+    if (c.modelo_contrato || (c.infos_json && c.infos_json.modelo_contrato)) {
+      h += '<div class="ctr-edit-grid" style="margin-top:0.5rem">';
+      h += field('modelo_contrato', 'Modelo de Contrato', c.modelo_contrato || (c.infos_json && c.infos_json.modelo_contrato) || '', 'text');
+      h += '</div>';
+    }
+
+    /* Parcelas */
+    if (c.parcelas && c.parcelas.length > 0) {
+      h += '<div class="ctr-section-title">Parcelas</div>';
+      h += '<div class="ctr-parcelas-wrap"><table class="ctr-parcelas-table">';
+      h += '<thead><tr><th>#</th><th>Vencimento</th><th>Pagamento</th><th>Valor Esperado</th><th>Valor Real</th><th>Status</th></tr></thead>';
+      h += '<tbody>';
+      c.parcelas.forEach(function(p, i) {
+        var paid = p.status_parcela === 1;
+        h += '<tr>';
+        h += '<td>' + (i+1) + '</td>';
+        h += '<td><input type="date" class="ctr-input-sm ctr-track" data-parcela="' + i + '" data-pf="referencia_esperado" value="' + (p.referencia_esperado||'') + '" data-orig="' + (p.referencia_esperado||'') + '" /></td>';
+        h += '<td><input type="date" class="ctr-input-sm ctr-track" data-parcela="' + i + '" data-pf="referencia_real" value="' + (p.referencia_real||'') + '" data-orig="' + (p.referencia_real||'') + '" /></td>';
+        h += '<td><input type="text" class="ctr-input-sm ctr-input-money ctr-track" data-parcela="' + i + '" data-pf="valor_esperado" value="' + (p.valor_esperado!=null?p.valor_esperado:'') + '" data-orig="' + (p.valor_esperado!=null?p.valor_esperado:'') + '" /></td>';
+        h += '<td><input type="text" class="ctr-input-sm ctr-input-money ctr-track" data-parcela="' + i + '" data-pf="valor_real" value="' + (p.valor_real!=null?p.valor_real:'') + '" data-orig="' + (p.valor_real!=null?p.valor_real:'') + '" /></td>';
+        h += '<td><select class="ctr-input-sm ctr-select-status ctr-track" data-parcela="' + i + '" data-pf="status_parcela" data-orig="' + (paid?'1':'0') + '"><option value="0"' + (!paid?' selected':'') + '>Pendente</option><option value="1"' + (paid?' selected':'') + '>Pago</option></select></td>';
+        h += '</tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+
+    document.getElementById('ctrModalBody').innerHTML = h;
+    saveAllBtn.disabled = true;
+    modal.classList.add('is-open');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    /* Track changes on all inputs */
+    document.querySelectorAll('#ctrModalBody .ctr-track').forEach(function(el) {
+      el.addEventListener('input', checkDirty);
+      el.addEventListener('change', checkDirty);
+    });
+  }
+
+  function field(name, label, val, type) {
+    return '<div class="ctr-edit-field"><label class="ctr-edit-label">' + esc(label) + '</label>'
+      + '<input type="' + type + '" class="ctr-edit-input ctr-track" data-cfield="' + name + '" value="' + esc(String(val)) + '" data-orig="' + esc(String(val)) + '" /></div>';
+  }
+  function fieldRO(label, val) {
+    return '<div class="ctr-edit-field"><label class="ctr-edit-label">' + esc(label) + '</label>'
+      + '<span class="ctr-edit-ro">' + esc(val) + '</span></div>';
+  }
+
+  /* ── Dirty detection ── */
+  function checkDirty() {
+    var el = this;
+    var dirty = el.value !== (el.getAttribute('data-orig') || '');
+    el.classList.toggle('ctr-input-dirty', dirty);
+
+    /* Check if ANY field in modal is dirty */
+    var anyDirty = document.querySelector('#ctrModalBody .ctr-input-dirty') !== null;
+    saveAllBtn.disabled = !anyDirty;
+  }
+
+  /* ── Save all ── */
+  saveAllBtn.addEventListener('click', async function() {
+    if (!confirm('Salvar todas as alterações deste contrato?')) return;
+
+    var c = cMap[currentId]; if (!c) return;
+    saveAllBtn.disabled = true;
+    var origText = saveAllBtn.innerHTML;
+    saveAllBtn.textContent = 'Salvando...';
+
+    /* Collect contract fields */
+    var idParceiro = getField('id_comercial_parceiro', c.id_comercial_parceiro);
+    var idResp = getField('id_responsavel', c.id_responsavel);
+
+    /* Rebuild infos_json */
+    var infos = JSON.parse(JSON.stringify(c.infos_json || {}));
+    var campos = infos.campos || {};
+
+    /* Modelo */
+    var modeloEl = document.querySelector('[data-cfield="modelo_contrato"]');
+    if (modeloEl) infos.modelo_contrato = modeloEl.value;
+
+    /* Custo */
+    var custoEl = document.querySelector('[data-cfield="campo_custo"]');
+    if (custoEl) { campos.custo = parseFloat(custoEl.value) || 0; campos.coluna_fixa_2 = campos.custo; }
+
+    /* Extra campos */
+    document.querySelectorAll('[data-cfield^="campo_"]').forEach(function(el) {
+      var key = el.getAttribute('data-cfield').replace('campo_', '');
+      if (key !== 'custo') campos[key] = el.value;
+    });
+    infos.campos = campos;
+
+    /* Collect parcelas */
+    var parcelas = [];
+    if (c.parcelas) {
+      c.parcelas.forEach(function(p, i) {
+        parcelas.push({
+          referencia_esperado: getParcField(i, 'referencia_esperado') || null,
+          referencia_real: getParcField(i, 'referencia_real') || null,
+          valor_esperado: parseFloat(getParcField(i, 'valor_esperado')) || null,
+          valor_real: parseFloat(getParcField(i, 'valor_real')) || null,
+        });
+      });
+    }
+
+    try {
+      var resp = await fetch('/portfolio/api/contratos', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          id_contrato: c.id_contrato,
+          id_comercial_lead: c.id_comercial_lead,
+          id_solucao: c.id_solucao,
+          id_comercial_parceiro: parseInt(idParceiro) || 0,
+          id_responsavel: parseInt(idResp) || null,
+          infos_json: infos,
+          parcelas: parcelas,
+        })
+      });
+      if (!resp.ok) throw new Error('Erro ao salvar');
+
+      /* Flash saved nos campos dirty */
+      document.querySelectorAll('#ctrModalBody .ctr-input-dirty').forEach(function(el) {
+        el.classList.remove('ctr-input-dirty');
+        el.classList.add('ctr-input-saved');
+        el.setAttribute('data-orig', el.value);
+      });
+      setTimeout(function() {
+        document.querySelectorAll('.ctr-input-saved').forEach(function(el) {
+          el.classList.remove('ctr-input-saved');
+        });
+      }, 2500);
+
+      saveAllBtn.disabled = true;
+
+    } catch (err) {
+      alert(err.message || 'Erro ao salvar. Tente novamente.');
+    } finally {
+      saveAllBtn.innerHTML = origText;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  });
+
+  function getField(name, fallback) {
+    var el = document.querySelector('[data-cfield="' + name + '"]');
+    return el ? el.value : (fallback || '');
+  }
+  function getParcField(idx, field) {
+    var el = document.querySelector('[data-parcela="' + idx + '"][data-pf="' + field + '"]');
+    return el ? el.value : '';
+  }
+
+  function closeModal() { modal.classList.remove('is-open'); }
+
+  grid.addEventListener('click', function(e) {
+    var card = e.target.closest('.ctr-card');
+    if (card) openModal(Number(card.dataset.id));
+  });
+  document.getElementById('ctrModalClose').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
+
+});
+</script>
+{% endblock %}

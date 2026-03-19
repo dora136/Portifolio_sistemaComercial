@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NovaCRM - Gestão Comercial{% endblock %}</title>
+    <meta name="description" content="Plataforma demonstrativa de gestão comercial">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236D6875'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-size='28' font-family='Arial,sans-serif' fill='white'%3ENGC%3C/text%3E%3C/svg%3E">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/portfolio/static/css/main.css?v=portfolio-v4">
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body
+    data-page="{% block page_id %}{% endblock %}"
+    data-user-id="{{ user.id if user and user.id else '' }}"
+    data-user-name="{{ user.name if user and user.name else '' }}"
+>
+    <div class="min-h-screen flex flex-col">
+        <!-- The Ribbon - Header -->
+        <header class="ribbon">
+            <div class="ribbon-content">
+                <div class="logo">
+                    <div class="logo-icon" aria-hidden="true">NGC</div>
+                    <div class="logo-text">
+                        <strong class="logo-title">NovaCRM</strong>
+                        <span class="logo-subtitle">Ambiente demonstrativo</span>
+                    </div>
+                </div>
+
+                <!-- KPI Micro-Cards -->
+                <div class="kpi-container">
+                    {% for kpi in kpis %}
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <span class="kpi-value">{{ kpi.value }}</span>
+                        </div>
+                        {% if kpi.trend %}
+                        <div class="kpi-trend {{ kpi.trend }}">
+                            {% if kpi.trend == 'up' %}
+                                <i data-lucide="trending-up" class="icon-sm"></i>
+                            {% elif kpi.trend == 'down' %}
+                                <i data-lucide="trending-down" class="icon-sm"></i>
+                            {% else %}
+                                <i data-lucide="minus" class="icon-sm"></i>
+                            {% endif %}
+                            <span>{{ kpi.trend_value }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Right Section -->
+                <div class="user-section">
+                    <!-- User Menu -->
+                    <button class="user-menu">
+                        <div class="avatar">
+                            {{ user.initials if user else 'NGC' }}
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">{{ user.name if user else 'Usuário Demo' }}</span>
+                            <span class="user-role">{{ user.role if user else 'Coordenador' }}</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Collapse Toggle -->
+                <div class="sidebar-toggle">
+                    <button class="toggle-btn">
+                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+
+                <!-- Main Navigation -->
+                <nav class="sidebar-nav">
+                    <button class="nav-item" data-view="add-lead">
+                        <i data-lucide="plus-circle"></i>
+                        <span class="nav-label">Cadastro</span>
+                    </button>
+                    <a class="nav-item" data-view="home" href="/portfolio/home">
+                        <i data-lucide="home"></i>
+                        <span class="nav-label">Home</span>
+                    </a>
+                    <details class="nav-group" data-nav-group="parceiros">
+                        <summary class="nav-item nav-item-parent">
+                            <i data-lucide="users"></i>
+                            <span class="nav-label">Parceiros</span>
+                            <i class="nav-group-chevron" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="nav-submenu" data-submenu="parceiros">
+                            <a class="nav-subitem" data-view="parceiros" href="/portfolio/parceiros">
+                                <i data-lucide="layout-list"></i>
+                                <span class="nav-label">Ativação</span>
+                            </a>
+                            <a class="nav-subitem" data-view="parceiros-acompanhamento" href="/portfolio/parceiros/acompanhamento">
+                                <i data-lucide="trello"></i>
+                                <span class="nav-label">Acompanhamento</span>
+                            </a>
+                        </div>
+                    </details>
+                    <a class="nav-item" data-view="leads" href="/portfolio/leads">
+                        <i data-lucide="trello"></i>
+                        <span class="nav-label">Leads</span>
+                    </a>
+                    <a class="nav-item" data-view="solucoes" href="/portfolio/solucoes">
+                        <i data-lucide="layers"></i>
+                        <span class="nav-label">Soluções</span>
+                    </a>
+                    <details class="nav-group nav-group-finance" data-nav-group="financeiro">
+                        <summary class="nav-item nav-item-parent">
+                            <i data-lucide="badge-dollar-sign"></i>
+                            <span class="nav-label">Financeiro</span>
+                            <i class="nav-group-chevron" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="nav-submenu" data-submenu="financeiro">
+                            <a class="nav-subitem" data-view="financeiro" href="/portfolio/financeiro">
+                                <i data-lucide="layout-dashboard"></i>
+                                <span class="nav-label">Dashboard</span>
+                            </a>
+                            <a class="nav-subitem" data-view="financeiro-saidas" href="/portfolio/financeiro/saidas">
+                                <i data-lucide="arrow-up-right"></i>
+                                <span class="nav-label">Saídas</span>
+                            </a>
+                            <a class="nav-subitem" data-view="financeiro-entradas" href="/portfolio/financeiro/entradas">
+                                <i data-lucide="arrow-down-left"></i>
+                                <span class="nav-label">Entradas</span>
+                            </a>
+                            <a class="nav-subitem" data-view="financeiro-pagamentos" href="/portfolio/financeiro/pagamentos">
+                                <i data-lucide="receipt"></i>
+                                <span class="nav-label">Pagamentos</span>
+                            </a>
+                        </div>
+                    </details>
+                    <a class="nav-item" data-view="administracao" href="/portfolio/administracao">
+                        <i data-lucide="bar-chart-3"></i>
+                        <span class="nav-label">Administração</span>
+                    </a>
+                    <a class="nav-item" data-view="contratos" href="/portfolio/contratos">
+                        <i data-lucide="file-text"></i>
+                        <span class="nav-label">Contratos</span>
+                    </a>
+                </nav>
+
+                <!-- Portal Link -->
+                <div class="sidebar-footer">
+                    <a class="sidebar-portal-btn" href="{{ portal_url or '#' }}">
+                        <i data-lucide="arrow-left"></i>
+                        <span class="nav-label">Voltar</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Module Content -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Lead Modal (Global) -->
+    <div class="solucao-edit-modal lead-create-modal" data-lead-modal>
+      <div class="solucao-edit-backdrop" data-lead-modal-close></div>
+      <div class="solucao-edit-panel lead-create-panel">
+        <div class="solucao-edit-header">
+          <div>
+            <h3>Novo cadastro</h3>
+            <p>Cadastre um parceiro ou lead para o kanban.</p>
+          </div>
+          <button class="solucao-edit-close" type="button" data-lead-modal-close>
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="lead-type-toggle" data-lead-toggle>
+          <span class="lead-type-indicator" data-lead-indicator></span>
+          <button type="button" class="lead-type-option active" data-lead-type="parceiro">
+            <i data-lucide="users" style="width:15px;height:15px;"></i> Parceiro
+          </button>
+          <button type="button" class="lead-type-option" data-lead-type="lead">
+            <i data-lucide="user-plus" style="width:15px;height:15px;"></i> Lead
+          </button>
+        </div>
+
+        <form class="lead-create-form" data-lead-form data-mode="parceiro">
+          <fieldset class="lead-form-fieldset">
+            <legend class="lead-form-legend">Dados da empresa</legend>
+            <div class="lead-form-grid">
+              <label class="lead-form-label">
+                <span class="lead-form-label-text">Nome Fantasia <span class="required-mark">*</span></span>
+                <input type="text" name="nome_fantasia" placeholder="Ex: TechFlow Solutions" required />
+              </label>
+              <label class="lead-form-label">
+                <span class="lead-form-label-text">Razão Social</span>
+                <input type="text" name="razao_social" placeholder="Ex: TechFlow Solutions Ltda" />
+              </label>
+              <label class="lead-form-label lead-form-full-width">
+                <span class="lead-form-label-text">CNPJ <span class="required-mark">*</span></span>
+                <div class="cnpj-input-wrapper">
+                  <input type="text" name="cnpj" placeholder="00.000.000/0000-00" maxlength="18" data-cnpj-input required />
+                  <button type="button" class="cnpj-search-btn" title="Pesquisar CNPJ">
+                    <i data-lucide="search"></i>
+                  </button>
+                </div>
+              </label>
+              <label class="lead-form-label">
+                <span class="lead-form-label-text">Segmento</span>
+                <input type="text" name="segmento" placeholder="Ex: SaaS, Fintech, E-commerce" />
+              </label>
+              <label class="lead-form-label">
+                <span class="lead-form-label-text">Responsável Comercial <span class="required-mark">*</span></span>
+                <select name="comercial" data-comercial-select required>
+                  <option value="">Selecione</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="lead-form-fieldset" data-variant="parceiro">
+            <legend class="lead-form-legend">Soluções do parceiro</legend>
+            <label class="lead-form-label">
+              <span class="lead-form-label-text">Solução oferecida <span class="required-mark">*</span></span>
+              <input type="hidden" name="solucao_parceiro" />
+              <div class="multi-select" data-multi-select="solucao_parceiro">
+                <button type="button" class="multi-select-toggle" aria-expanded="false">
+                  <span class="multi-select-label">Selecione as soluções</span>
+                </button>
+                <div class="multi-select-menu" hidden></div>
+              </div>
+            </label>
+          </fieldset>
+
+          <fieldset class="lead-form-fieldset" data-variant="lead">
+            <legend class="lead-form-legend">Soluções do lead</legend>
+            <label class="lead-form-label">
+              <span class="lead-form-label-text">Solução para o kanban <span class="required-mark">*</span></span>
+              <input type="hidden" name="solucao_lead" />
+              <div class="multi-select" data-multi-select="solucao_lead">
+                <button type="button" class="multi-select-toggle" aria-expanded="false">
+                  <span class="multi-select-label">Selecione as soluções</span>
+                </button>
+                <div class="multi-select-menu" hidden></div>
+              </div>
+            </label>
+          </fieldset>
+
+          <div class="lead-form-actions">
+            <button type="button" class="lead-form-btn-cancel" data-lead-modal-close>Cancelar</button>
+            <button type="button" class="lead-form-btn-save solucao-edit-save">
+              <i data-lucide="check" style="width:16px;height:16px;"></i> Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- CNPJ Search Results Modal -->
+    <div class="cnpj-results-modal" data-cnpj-results-modal>
+      <div class="cnpj-results-backdrop" data-cnpj-results-close></div>
+      <div class="cnpj-results-panel">
+        <div class="cnpj-results-header">
+          <div>
+            <h3>Resultados da Pesquisa</h3>
+            <p data-cnpj-results-subtitle>Leads encontrados para o CNPJ informado.</p>
+          </div>
+          <button class="solucao-edit-close" type="button" data-cnpj-results-close>
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="cnpj-results-body" data-cnpj-results-body>
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CRM Search Sidebar -->
+    <div class="crm-sidebar" data-crm-sidebar>
+      <div class="crm-sidebar-backdrop" data-crm-sidebar-close></div>
+      <div class="crm-sidebar-panel">
+        <div class="crm-sidebar-header">
+          <h3>Buscar no CRM</h3>
+          <button type="button" class="crm-sidebar-close" data-crm-sidebar-close>
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="crm-search-box">
+          <i data-lucide="search" class="crm-search-icon"></i>
+          <input type="text" placeholder="Buscar lead por nome ou CNPJ..." data-crm-search-input />
+        </div>
+
+        <div class="crm-leads-list" data-crm-leads-list>
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+    <script src="/portfolio/static/js/app.js?v=portfolio-v4"></script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

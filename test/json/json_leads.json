@@ -1,0 +1,130 @@
+{
+  "leads": [
+    {
+      "id": "l1",
+      "name": "Carlos Mendes",
+      "company": "Indústria ABC",
+      "email": "carlos@industriaabc.demo",
+      "phone": "(11) 98765-4321",
+      "id_solucao": 2,
+      "stage": "triagem",
+      "value": 85000,
+      "lastAction": "2024-03-15",
+      "createdAt": "2024-03-10",
+      "tags": ["Cliente VIP"]
+    },
+    {
+      "id": "l2",
+      "name": "Marina Silva",
+      "company": "Comércio XYZ",
+      "email": "marina@comercioxyz.demo",
+      "id_solucao": 2,
+      "stage": "reuniao",
+      "value": 120000,
+      "lastAction": "2024-03-14",
+      "createdAt": "2024-03-05"
+    },
+    {
+      "id": "l3",
+      "name": "Roberto Alves",
+      "company": "Metalúrgica Alves",
+      "email": "roberto@metalurgica.demo",
+      "id_solucao": 2,
+      "stage": "proposta",
+      "value": 250000,
+      "lastAction": "2024-03-16",
+      "createdAt": "2024-02-28"
+    },
+    {
+      "id": "l4",
+      "name": "Fernanda Costa",
+      "company": "Hotel Paradise",
+      "email": "fernanda@hotelparadise.demo",
+      "id_solucao": 2,
+      "stage": "fechamento",
+      "value": 180000,
+      "lastAction": "2024-03-17",
+      "createdAt": "2024-02-15",
+      "tags": ["Parceiro Ouro"]
+    },
+    {
+      "id": "l5",
+      "name": "João Pedro",
+      "company": "Fazenda São José",
+      "email": "joao@fazendasaojose.demo",
+      "id_solucao": 3,
+      "stage": "triagem",
+      "value": 450000,
+      "lastAction": "2024-03-16",
+      "createdAt": "2024-03-12"
+    },
+    {
+      "id": "l6",
+      "name": "Ana Beatriz",
+      "company": "Condomínio Villa Verde",
+      "email": "ana@villaverde.demo",
+      "id_solucao": 3,
+      "stage": "proposta",
+      "value": 320000,
+      "lastAction": "2024-03-15",
+      "createdAt": "2024-03-01"
+    },
+    {
+      "id": "l7",
+      "name": "Lucas Ferreira",
+      "company": "Data Center Norte",
+      "email": "lucas@dcnorte.demo",
+      "id_solucao": 4,
+      "stage": "reuniao",
+      "value": 890000,
+      "lastAction": "2024-03-17",
+      "createdAt": "2024-03-08",
+      "relatedDeals": [
+        {
+          "id_solucao": 2,
+          "stage": "reuniao"
+        }
+      ]
+    },
+    {
+      "id": "l10",
+      "name": "Lucas Ferreira",
+      "company": "Data Center Norte",
+      "email": "lucas@dcnorte.demo",
+      "id_solucao": 2,
+      "stage": "reuniao",
+      "value": 350000,
+      "lastAction": "2024-03-17",
+      "createdAt": "2024-03-05",
+      "relatedDeals": [
+        {
+          "id_solucao": 4,
+          "stage": "reuniao"
+        }
+      ]
+    },
+    {
+      "id": "l8",
+      "name": "Patricia Gomes",
+      "company": "Construtora Horizonte",
+      "email": "patricia@horizonte.demo",
+      "id_solucao": 5,
+      "stage": "triagem",
+      "value": 150000,
+      "lastAction": "2024-03-16",
+      "createdAt": "2024-03-14"
+    },
+    {
+      "id": "l9",
+      "name": "Ricardo Martins",
+      "company": "Shopping Center Sul",
+      "email": "ricardo@shoppingsul.demo",
+      "id_solucao": 5,
+      "stage": "fechamento",
+      "value": 680000,
+      "lastAction": "2024-03-17",
+      "createdAt": "2024-02-20",
+      "tags": ["Cliente VIP", "Parceiro Ouro"]
+    }
+  ]
+}

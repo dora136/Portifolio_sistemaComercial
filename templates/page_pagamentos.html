@@ -1,0 +1,678 @@
+{% extends "base.html" %}
+
+{% block page_id %}financeiro-pagamentos{% endblock %}
+
+{% block title %}Pagamentos - NovaCRM{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pag-root {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: clamp(0.85rem, 1.4vw, 1.2rem) clamp(0.9rem, 1.8vw, 1.35rem) 1.75rem;
+    box-sizing: border-box;
+  }
+  .pag-root::-webkit-scrollbar { width: 8px; }
+  .pag-root::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 10px; }
+
+  /* Header */
+  .pag-header { margin-bottom: 1.5rem; }
+  .pag-header h1 { font-size: 2rem; line-height: 1.15; margin-bottom: 0.2rem; }
+  .pag-header p { font-size: 0.95rem; color: hsl(var(--muted-foreground)); }
+
+  /* KPI Grid */
+  .pag-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .pag-kpi {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .pag-kpi-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pag-kpi-label i { width: 14px; height: 14px; }
+  .pag-kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: hsl(var(--foreground));
+  }
+  .pag-kpi-value.is-green { color: hsl(142, 71%, 35%); }
+  .pag-kpi-value.is-red { color: hsl(0, 72%, 51%); }
+  .pag-kpi-sub {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Filters bar */
+  .pag-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .pag-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    color: hsl(var(--muted-foreground));
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pag-filter-btn:hover,
+  .pag-filter-btn.active {
+    background: hsl(var(--primary));
+    color: white;
+    border-color: hsl(var(--primary));
+  }
+  .pag-filter-btn i { width: 14px; height: 14px; }
+  .pag-search {
+    margin-left: auto;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.8rem;
+    min-width: 220px;
+  }
+
+  /* Accordion container */
+  .pag-accordion { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  /* Month card */
+  .pag-month-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .pag-month-card:hover { box-shadow: 0 4px 16px -4px rgba(0,0,0,0.12); }
+  .pag-month-card.is-open { box-shadow: 0 6px 24px -6px rgba(0,0,0,0.15); }
+
+  /* Month header (clickable) */
+  .pag-month-header {
+    display: grid;
+    grid-template-columns: 1.8fr repeat(3, 1fr) auto 36px;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+    gap: 0.5rem;
+  }
+  .pag-month-header:hover { background: hsl(var(--muted) / 0.3); }
+
+  .pag-month-title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .pag-month-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.5rem;
+    background: hsl(var(--primary) / 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--primary));
+    flex-shrink: 0;
+  }
+  .pag-month-icon i { width: 18px; height: 18px; }
+  .pag-month-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+  .pag-month-year {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .pag-month-stat {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .pag-month-stat-label {
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 500;
+  }
+  .pag-month-stat-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .pag-month-stat-value.is-green { color: hsl(142, 71%, 35%); }
+  .pag-month-stat-value.is-red { color: hsl(0, 72%, 51%); }
+  .pag-month-stat-value.is-blue { color: hsl(217, 91%, 60%); }
+
+  .pag-month-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s;
+    color: hsl(var(--muted-foreground));
+  }
+  .pag-month-card.is-open .pag-month-chevron { transform: rotate(180deg); }
+
+  /* Progress bar */
+  .pag-progress {
+    height: 3px;
+    background: hsl(var(--border));
+    margin: 0 1.25rem;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .pag-progress-bar {
+    height: 100%;
+    background: hsl(142, 71%, 45%);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Parcelas table (expandable) */
+  .pag-month-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .pag-month-card.is-open .pag-month-body { max-height: 2000px; }
+
+  .pag-table-wrap { padding: 0 1rem 1rem; }
+
+  .pag-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .pag-table thead th {
+    text-align: left;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .pag-table tbody td {
+    padding: 0.55rem 0.5rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+  }
+  .pag-table tbody tr:last-child td { border-bottom: none; }
+  .pag-table tbody tr:hover { background: hsl(var(--muted) / 0.2); }
+
+  .pag-tipo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .pag-tipo-badge.is-entrada {
+    background: hsl(142 71% 45% / 0.12);
+    color: hsl(142, 71%, 30%);
+  }
+  .pag-tipo-badge.is-saida {
+    background: hsl(0 72% 51% / 0.1);
+    color: hsl(0, 72%, 45%);
+  }
+  .pag-tipo-badge i { width: 12px; height: 12px; }
+
+  .pag-status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  .pag-status-dot::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pag-status-dot.is-pago::before { background: hsl(142, 71%, 45%); }
+  .pag-status-dot.is-pendente::before { background: hsl(38, 92%, 50%); }
+  .pag-status-dot.is-atrasado::before { background: hsl(0, 72%, 51%); }
+
+  /* Mini status counters no header do mês */
+  .pag-month-counters {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .pag-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pag-counter::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pag-counter.is-pago {
+    background: hsl(142 71% 45% / 0.1);
+    color: hsl(142, 71%, 30%);
+  }
+  .pag-counter.is-pago::before { background: hsl(142, 71%, 45%); }
+  .pag-counter.is-pendente {
+    background: hsl(38 92% 50% / 0.1);
+    color: hsl(38, 70%, 35%);
+  }
+  .pag-counter.is-pendente::before { background: hsl(38, 92%, 50%); }
+  .pag-counter.is-atrasado {
+    background: hsl(0 72% 51% / 0.1);
+    color: hsl(0, 72%, 45%);
+  }
+  .pag-counter.is-atrasado::before { background: hsl(0, 72%, 51%); }
+
+  .pag-valor { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pag-valor.is-entrada { color: hsl(142, 71%, 30%); }
+  .pag-valor.is-saida { color: hsl(0, 72%, 45%); }
+
+  /* Empty state */
+  .pag-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .pag-empty i { width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.4; }
+  .pag-empty strong { display: block; margin-bottom: 0.3rem; font-size: 1.1rem; color: hsl(var(--foreground)); }
+
+  /* Loading */
+  .pag-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    color: hsl(var(--muted-foreground));
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .pag-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid hsl(var(--border));
+    border-top-color: hsl(var(--primary));
+    border-radius: 50%;
+    animation: pag-spin 0.6s linear infinite;
+  }
+  @keyframes pag-spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .pag-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .pag-month-header { grid-template-columns: 1.8fr repeat(2, 1fr) auto 36px; }
+    .pag-month-stat:nth-child(4) { display: none; }
+  }
+  @media (max-width: 768px) {
+    .pag-root { padding: 0.8rem; }
+    .pag-kpi-grid { grid-template-columns: 1fr; }
+    .pag-month-header { grid-template-columns: 1fr auto 36px; }
+    .pag-month-stat { display: none; }
+    .pag-table { font-size: 0.75rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pag-root">
+  <div class="pag-header">
+    <h1>Pagamentos</h1>
+    <p>Acompanhe parcelas a receber e pagar organizadas por mês.</p>
+  </div>
+
+  <!-- KPIs globais -->
+  <div class="pag-kpi-grid">
+    <div class="pag-kpi">
+      <span class="pag-kpi-label"><i data-lucide="arrow-down-left"></i> Total a Receber</span>
+      <span class="pag-kpi-value is-green" id="kpiReceber">R$ 0,00</span>
+      <span class="pag-kpi-sub" id="kpiReceberSub">0 parcelas</span>
+    </div>
+    <div class="pag-kpi">
+      <span class="pag-kpi-label"><i data-lucide="arrow-up-right"></i> Total a Pagar</span>
+      <span class="pag-kpi-value is-red" id="kpiPagar">R$ 0,00</span>
+      <span class="pag-kpi-sub" id="kpiPagarSub">0 parcelas</span>
+    </div>
+    <div class="pag-kpi">
+      <span class="pag-kpi-label"><i data-lucide="scale"></i> Saldo Líquido</span>
+      <span class="pag-kpi-value" id="kpiSaldo">R$ 0,00</span>
+      <span class="pag-kpi-sub" id="kpiSaldoSub">receber - pagar</span>
+    </div>
+    <div class="pag-kpi">
+      <span class="pag-kpi-label"><i data-lucide="check-circle-2"></i> Taxa de Quitação</span>
+      <span class="pag-kpi-value" id="kpiQuitacao">0%</span>
+      <span class="pag-kpi-sub" id="kpiQuitacaoSub">0 de 0 parcelas pagas</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="pag-filters">
+    <button class="pag-filter-btn active" data-filter="todos"><i data-lucide="layers"></i> Todos</button>
+    <button class="pag-filter-btn" data-filter="entradas"><i data-lucide="arrow-down-left"></i> Entradas</button>
+    <button class="pag-filter-btn" data-filter="saidas"><i data-lucide="arrow-up-right"></i> Saídas</button>
+    <button class="pag-filter-btn" data-filter="pendentes"><i data-lucide="clock"></i> Pendentes</button>
+    <input type="text" class="pag-search" placeholder="Buscar lead, parceiro ou solução..." data-pag-search />
+  </div>
+
+  <!-- Accordion -->
+  <div class="pag-accordion" id="pagAccordion">
+    <div class="pag-loading" id="pagLoading">
+      <div class="pag-spinner"></div>
+      Carregando pagamentos...
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const MONTH_NAMES = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+
+  function fmtBRL(v) {
+    return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const parts = iso.split('-');
+    if (parts.length < 3) return iso;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+
+  function isAtrasada(parcela) {
+    if (parcela.status_parcela === 1) return false;
+    const ref = parcela.referencia_esperado;
+    if (!ref) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const venc = new Date(ref + 'T00:00:00');
+    return venc < today;
+  }
+
+  function getParcelaStatus(p) {
+    if (p.status_parcela === 1) return 'pago';
+    if (isAtrasada(p)) return 'atrasado';
+    return 'pendente';
+  }
+
+  function parseMesKey(key) {
+    const [year, month] = key.split('-');
+    const idx = parseInt(month, 10) - 1;
+    return { name: MONTH_NAMES[idx] || month, year };
+  }
+
+  let allData = [];
+  let currentFilter = 'todos';
+  let searchTerm = '';
+
+  function filterParcelas(parcelas) {
+    let filtered = parcelas;
+    if (currentFilter === 'entradas') {
+      filtered = filtered.filter(p => p.tipo === 'entradas');
+    } else if (currentFilter === 'saidas') {
+      filtered = filtered.filter(p => p.tipo === 'saidas');
+    } else if (currentFilter === 'pendentes') {
+      filtered = filtered.filter(p => p.status_parcela === 0);
+    }
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      filtered = filtered.filter(p =>
+        (p.lead_nome || '').toLowerCase().includes(q) ||
+        (p.parceiro_nome || '').toLowerCase().includes(q) ||
+        (p.nome_solucao || '').toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }
+
+  function computeKPIs() {
+    let totalReceber = 0, totalPagar = 0, totalParcelas = 0, totalPagas = 0;
+    allData.forEach(mes => {
+      const parcelas = filterParcelas(mes.parcelas);
+      parcelas.forEach(p => {
+        const val = p.valor_esperado || p.valor_real || 0;
+        if (p.tipo === 'entradas') totalReceber += val;
+        else totalPagar += val;
+        totalParcelas++;
+        if (p.status_parcela === 1) totalPagas++;
+      });
+    });
+    const saldo = totalReceber - totalPagar;
+
+    document.getElementById('kpiReceber').textContent = fmtBRL(totalReceber);
+    document.getElementById('kpiReceberSub').textContent = `${totalParcelas} parcelas no total`;
+    document.getElementById('kpiPagar').textContent = fmtBRL(totalPagar);
+    document.getElementById('kpiPagarSub').textContent = `todas as saídas`;
+    document.getElementById('kpiSaldo').textContent = fmtBRL(saldo);
+    const saldoEl = document.getElementById('kpiSaldo');
+    saldoEl.className = 'pag-kpi-value ' + (saldo >= 0 ? 'is-green' : 'is-red');
+    document.getElementById('kpiQuitacao').textContent = totalParcelas > 0 ? Math.round((totalPagas / totalParcelas) * 100) + '%' : '0%';
+    document.getElementById('kpiQuitacaoSub').textContent = `${totalPagas} de ${totalParcelas} parcelas pagas`;
+  }
+
+  function renderAccordion() {
+    const container = document.getElementById('pagAccordion');
+    const html = [];
+
+    allData.forEach((mes, idx) => {
+      const parcelas = filterParcelas(mes.parcelas);
+      if (parcelas.length === 0) return;
+
+      let mesReceber = 0, mesPagar = 0, mesPagas = 0, mesPendentes = 0, mesAtrasadas = 0;
+      parcelas.forEach(p => {
+        const val = p.valor_esperado || p.valor_real || 0;
+        if (p.tipo === 'entradas') mesReceber += val;
+        else mesPagar += val;
+        const st = getParcelaStatus(p);
+        if (st === 'pago') mesPagas++;
+        else if (st === 'atrasado') mesAtrasadas++;
+        else mesPendentes++;
+      });
+      const mesParcelas = parcelas.length;
+      const progressPct = mesParcelas > 0 ? Math.round((mesPagas / mesParcelas) * 100) : 0;
+      const { name, year } = parseMesKey(mes.mes);
+
+      html.push(`
+        <div class="pag-month-card" data-month-idx="${idx}">
+          <div class="pag-month-header" data-toggle-month="${idx}">
+            <div class="pag-month-title">
+              <div class="pag-month-icon"><i data-lucide="calendar"></i></div>
+              <div>
+                <div class="pag-month-name">${name}</div>
+                <div class="pag-month-year">${year}</div>
+              </div>
+            </div>
+            <div class="pag-month-stat">
+              <span class="pag-month-stat-label">A Receber</span>
+              <span class="pag-month-stat-value is-green">${fmtBRL(mesReceber)}</span>
+            </div>
+            <div class="pag-month-stat">
+              <span class="pag-month-stat-label">A Pagar</span>
+              <span class="pag-month-stat-value is-red">${fmtBRL(mesPagar)}</span>
+            </div>
+            <div class="pag-month-stat">
+              <span class="pag-month-stat-label">Total</span>
+              <span class="pag-month-stat-value is-blue">${mesParcelas}</span>
+            </div>
+            <div class="pag-month-counters">
+              <span class="pag-counter is-pago">${mesPagas} pagas</span>
+              <span class="pag-counter is-pendente">${mesPendentes} pendentes</span>
+              ${mesAtrasadas > 0 ? `<span class="pag-counter is-atrasado">${mesAtrasadas} atrasadas</span>` : ''}
+            </div>
+            <div class="pag-month-chevron"><i data-lucide="chevron-down"></i></div>
+          </div>
+          <div class="pag-progress"><div class="pag-progress-bar" style="width: ${progressPct}%;"></div></div>
+          <div class="pag-month-body">
+            <div class="pag-table-wrap">
+              <table class="pag-table">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Lead / Empresa</th>
+                    <th>Parceiro</th>
+                    <th>Solução</th>
+                    <th>Vencimento</th>
+                    <th>Valor Esperado</th>
+                    <th>Valor Real</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${parcelas.map(p => `
+                    <tr>
+                      <td>
+                        <span class="pag-tipo-badge ${p.tipo === 'entradas' ? 'is-entrada' : 'is-saida'}">
+                          <i data-lucide="${p.tipo === 'entradas' ? 'arrow-down-left' : 'arrow-up-right'}"></i>
+                          ${p.tipo === 'entradas' ? 'Entrada' : 'Saída'}
+                        </span>
+                      </td>
+                      <td>${p.lead_nome}</td>
+                      <td>${p.parceiro_nome}</td>
+                      <td>${p.nome_solucao}</td>
+                      <td>${fmtDate(p.referencia_esperado)}</td>
+                      <td><span class="pag-valor ${p.tipo === 'entradas' ? 'is-entrada' : 'is-saida'}">${fmtBRL(p.valor_esperado)}</span></td>
+                      <td><span class="pag-valor">${p.valor_real ? fmtBRL(p.valor_real) : '—'}</span></td>
+                      <td>
+                        ${(() => {
+                          const st = getParcelaStatus(p);
+                          const cls = st === 'pago' ? 'is-pago' : st === 'atrasado' ? 'is-atrasado' : 'is-pendente';
+                          const label = st === 'pago' ? 'Pago' : st === 'atrasado' ? 'Atrasado' : 'Pendente';
+                          return '<span class="pag-status-dot ' + cls + '">' + label + '</span>';
+                        })()}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `);
+    });
+
+    if (html.length === 0) {
+      container.innerHTML = `
+        <div class="pag-empty">
+          <i data-lucide="inbox"></i>
+          <strong>Nenhuma parcela encontrada</strong>
+          <p>Tente ajustar os filtros ou busca.</p>
+        </div>`;
+    } else {
+      container.innerHTML = html.join('');
+    }
+
+    lucide.createIcons();
+
+    // Accordion toggle
+    container.querySelectorAll('[data-toggle-month]').forEach(header => {
+      header.addEventListener('click', () => {
+        const card = header.closest('.pag-month-card');
+        card.classList.toggle('is-open');
+      });
+    });
+  }
+
+  // Filter buttons
+  document.querySelectorAll('.pag-filter-btn[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pag-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.getAttribute('data-filter');
+      computeKPIs();
+      renderAccordion();
+    });
+  });
+
+  // Search
+  const searchInput = document.querySelector('[data-pag-search]');
+  let searchTimer = null;
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        searchTerm = searchInput.value.trim();
+        computeKPIs();
+        renderAccordion();
+      }, 250);
+    });
+  }
+
+  // Load data
+  async function loadData() {
+    try {
+      const response = await fetch('/portfolio/financeiro/pagamentos-data');
+      const payload = await response.json();
+      if (!payload || !payload.ok) throw new Error('Erro na resposta');
+      allData = payload.meses || [];
+      document.getElementById('pagLoading').remove();
+      computeKPIs();
+      renderAccordion();
+    } catch (err) {
+      console.error('Erro ao carregar pagamentos:', err);
+      document.getElementById('pagLoading').innerHTML = `
+        <div class="pag-empty">
+          <i data-lucide="alert-triangle"></i>
+          <strong>Erro ao carregar dados</strong>
+          <p>${err.message || 'Tente novamente.'}</p>
+        </div>`;
+      lucide.createIcons();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadData);
+  } else {
+    loadData();
+  }
+})();
+</script>
+{% endblock %}

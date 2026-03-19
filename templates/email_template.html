@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f8;color:#1f2937;font-family:Arial,sans-serif;">
+    <div style="max-width:760px;margin:24px auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+
+        <div style="padding:20px 24px;background:#0f172a;color:#ffffff;">
+            <h1 style="margin:0;font-size:20px;line-height:1.3;color:#ffffff;">{{ subject }}</h1>
+            <div style="margin-top:8px;font-size:12px;color:#cbd5e1;">
+                Tipo: {{ kpi_type_label }}<br>
+                Gerado em: {{ generated_at }}{% if requested_by %} | Solicitado por: {{ requested_by }}{% endif %}
+            </div>
+        </div>
+
+        <div style="padding:20px 24px 24px;">
+            <div style="margin:0 0 16px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                <p style="margin:4px 0;font-size:14px;">Total de parcelas: <strong>{{ total_count }}</strong></p>
+                <p style="margin:4px 0;font-size:14px;">Valor esperado total: <strong>R$ {{ total_value_formatted }}</strong></p>
+            </div>
+
+            {% if rows %}
+            <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;background:#f8fafc;font-weight:700;">Parceiro</th>
+                        <th style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;background:#f8fafc;font-weight:700;">Lead</th>
+                        <th style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;background:#f8fafc;font-weight:700;">Vencimento</th>
+                        <th style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;background:#f8fafc;font-weight:700;">Valor esperado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;">{{ row.parceiro }}</td>
+                        <td style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;">{{ row.lead }}</td>
+                        <td style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;">{{ row.vencimento }}</td>
+                        <td style="border:1px solid #e5e7eb;padding:10px;text-align:left;font-size:13px;">R$ {{ row.valor_esperado }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% elif raw_html %}
+            {{ raw_html | safe }}
+            {% else %}
+            <p style="font-size:14px;">Nenhum registro encontrado para este envio.</p>
+            {% endif %}
+        </div>
+
+        <div style="padding:14px 24px;background:#f8fafc;border-top:1px solid #e5e7eb;color:#64748b;font-size:12px;">
+            Mensagem automatica do modulo financeiro demo.
+        </div>
+    </div>
+</body>
+</html>

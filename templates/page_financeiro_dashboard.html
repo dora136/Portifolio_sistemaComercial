@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block page_id %}financeiro{% endblock %}
+
+{% block title %}Financeiro - NovaCRM{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  .finance-dashboard-root {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: clamp(0.85rem, 1.4vw, 1.2rem) clamp(0.9rem, 1.8vw, 1.35rem) 1.75rem;
+    box-sizing: border-box;
+  }
+  .finance-dashboard-root::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .finance-dashboard-root::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 10px;
+  }
+  .finance-dashboard-shell {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+  .finance-page-header h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+    margin-bottom: 0.2rem;
+  }
+  .finance-page-header p {
+    font-size: 0.95rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .finance-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1vw, 1rem);
+  }
+  .finance-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.9rem;
+    box-shadow: 0 10px 24px -20px rgba(0, 0, 0, 0.35);
+  }
+  .finance-kpi {
+    grid-column: span 3;
+    padding: 1rem 1.1rem;
+  }
+  .finance-chart {
+    grid-column: span 4;
+    padding: 1rem 1.1rem;
+  }
+  .finance-chart-wide {
+    grid-column: span 12;
+    padding: 1rem 1.1rem;
+  }
+  .finance-chart-full {
+    grid-column: span 12;
+    padding: 1rem 1.1rem;
+  }
+  .finance-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    letter-spacing: 0.1px;
+  }
+  .finance-card p {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 0.85rem;
+  }
+  .finance-kpi-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: hsl(var(--foreground));
+  }
+  .finance-canvas {
+    height: 330px;
+  }
+  @media (max-width: 1280px) {
+    .finance-kpi { grid-column: span 6; }
+    .finance-chart, .finance-chart-wide, .finance-chart-full { grid-column: span 12; }
+  }
+  @media (max-width: 768px) {
+    .finance-dashboard-root { padding: 0.8rem; }
+    .finance-kpi { grid-column: span 12; }
+    .finance-canvas { height: 280px; }
+    .finance-page-header h1 { font-size: 1.65rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="finance-dashboard-root">
+  <div class="finance-dashboard-shell space-y-6">
+  <div class="finance-page-header">
+    <h1 class="text-2xl font-bold text-foreground">Dashboard Financeiro</h1>
+    <p class="text-sm text-muted-foreground mt-1">Visão de receita, custo e soluções do Comercial.</p>
+  </div>
+
+  <div class="finance-dashboard-grid">
+    <div class="finance-card finance-kpi">
+      <h3>Receita Total</h3>
+      <p>Dados reais</p>
+      <div id="kpiReceita" class="finance-kpi-value">R$ 0,00</div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <h3>Total Custos</h3>
+      <p>Dados reais</p>
+      <div id="kpiCusto" class="finance-kpi-value">R$ 0,00</div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <h3>Parceiros Ativos</h3>
+      <p>Dados reais</p>
+      <div id="kpiParceiros" class="finance-kpi-value">0</div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <h3>Contratos Pendentes</h3>
+      <p>Dados reais</p>
+      <div id="kpiPendentes" class="finance-kpi-value">0</div>
+    </div>
+
+    <div class="finance-card finance-chart-wide">
+      <h3>Receita x Custo por Mês</h3>
+      <p>Visão mensal consolidada</p>
+      <div class="finance-canvas"><canvas id="chartReceitaCustoMensal"></canvas></div>
+    </div>
+
+    <div class="finance-card finance-chart">
+      <h3>Leads por Solução</h3>
+      <p>Distribuição de leads</p>
+      <div class="finance-canvas"><canvas id="chartLeadsPizza"></canvas></div>
+    </div>
+
+    <div class="finance-card finance-chart">
+      <h3>Receita x Custo - Data Analytics</h3>
+      <p>Somente Data Analytics</p>
+      <div class="finance-canvas"><canvas id="chartMercadoLivre"></canvas></div>
+    </div>
+
+    <div class="finance-card finance-chart">
+      <h3>Receita - Cloud Computing</h3>
+      <p>Somente solução Cloud Computing</p>
+      <div class="finance-canvas"><canvas id="chartReceitaGD"></canvas></div>
+    </div>
+
+    <div class="finance-card finance-chart-full">
+      <h3>Soluções Comercial</h3>
+      <p>Cloud, Cybersecurity, Data Analytics, Consulting e Sistema Comercial</p>
+      <div class="finance-canvas"><canvas id="chartSolucoesComercial"></canvas></div>
+    </div>
+  </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    const chartColors = {
+      receita: "hsl(160,45%,22%)",
+      custo: "hsl(42,100%,50%)",
+      lineFill: "rgba(20,120,90,0.12)",
+      pie: [
+        "hsl(160,45%,22%)", "hsl(42,100%,50%)", "hsl(210,80%,55%)", "hsl(152,60%,42%)",
+        "hsl(0,72%,51%)", "hsl(280,60%,55%)", "hsl(320,65%,52%)", "hsl(24,90%,55%)"
+      ]
+    };
+
+    function fmtBRL(v) {
+      return "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function barOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        scales: {
+          x: { grid: { display: false }, stacked: false },
+          y: {
+            beginAtZero: true,
+            stacked: false,
+            ticks: { callback: (value) => fmtBRL(value) },
+            grid: { color: "rgba(0,0,0,0.08)" }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${fmtBRL(ctx.parsed.y)}`
+            }
+          }
+        }
+      };
+    }
+
+    async function renderDashboard() {
+      let payload = null;
+      try {
+        const response = await fetch("/portfolio/financeiro/dashboard-data");
+        payload = await response.json();
+      } catch (error) {
+        console.error("Erro ao carregar dashboard financeiro:", error);
+        return;
+      }
+      if (!payload || !payload.ok) return;
+
+      const kpis = payload.kpis || {};
+      document.getElementById("kpiReceita").textContent = fmtBRL(kpis.receita_total);
+      document.getElementById("kpiCusto").textContent = fmtBRL(kpis.custo_total);
+      document.getElementById("kpiParceiros").textContent = String(kpis.parceiros_ativos || 0);
+      document.getElementById("kpiPendentes").textContent = String(kpis.contratos_pendentes || 0);
+
+      const mensal = payload.receita_custo_mensal || { labels: [], receita: [], custo: [] };
+      new Chart(document.getElementById("chartReceitaCustoMensal"), {
+        type: "bar",
+        data: {
+          labels: mensal.labels,
+          datasets: [
+            { label: "Receita", data: mensal.receita, backgroundColor: chartColors.receita, borderRadius: 4, stack: "receita" },
+            { label: "Custo", data: mensal.custo, backgroundColor: chartColors.custo, borderRadius: 4, stack: "custo" }
+          ]
+        },
+        options: barOptions()
+      });
+
+      const leads = payload.leads_pizza || { labels: [], data: [] };
+      new Chart(document.getElementById("chartLeadsPizza"), {
+        type: "doughnut",
+        data: {
+          labels: leads.labels,
+          datasets: [{ data: leads.data, backgroundColor: chartColors.pie.slice(0, leads.labels.length) }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right" },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} lead(s)` } }
+          }
+        }
+      });
+
+      const ml = payload.analytics || { labels: [], receita: [], custo: [] };
+      new Chart(document.getElementById("chartMercadoLivre"), {
+        type: "bar",
+        data: {
+          labels: ml.labels,
+          datasets: [
+            { label: "Receita", data: ml.receita, backgroundColor: chartColors.receita, borderRadius: 4, stack: "receita" },
+            { label: "Custo", data: ml.custo, backgroundColor: chartColors.custo, borderRadius: 4, stack: "custo" }
+          ]
+        },
+        options: barOptions()
+      });
+
+      const gd = payload.receita_cloud || { labels: [], receita: [] };
+      new Chart(document.getElementById("chartReceitaGD"), {
+        type: "line",
+        data: {
+          labels: gd.labels,
+          datasets: [
+            {
+              label: "Receita Cloud",
+              data: gd.receita,
+              borderColor: chartColors.receita,
+              backgroundColor: chartColors.lineFill,
+              fill: true,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (value) => fmtBRL(value) },
+              grid: { color: "rgba(0,0,0,0.08)" }
+            }
+          },
+          plugins: {
+            tooltip: { callbacks: { label: (ctx) => `Receita: ${fmtBRL(ctx.parsed.y)}` } }
+          }
+        }
+      });
+
+      const comercial = payload.solucoes_comercial || { labels: [], receita: [], custo: [] };
+      new Chart(document.getElementById("chartSolucoesComercial"), {
+        type: "bar",
+        data: {
+          labels: comercial.labels,
+          datasets: [
+            { label: "Receita", data: comercial.receita, backgroundColor: chartColors.receita, borderRadius: 4, stack: "receita" },
+            { label: "Custo", data: comercial.custo, backgroundColor: chartColors.custo, borderRadius: 4, stack: "custo" }
+          ]
+        },
+        options: barOptions()
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", renderDashboard);
+    } else {
+      renderDashboard();
+    }
+  })();
+</script>
+{% endblock %}

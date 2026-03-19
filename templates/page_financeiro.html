@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block page_id %}{{ finance_page_id }}{% endblock %}
+
+{% block title %}Financeiro - NovaCRM{% endblock %}
+
+{% block content %}
+<div class="financeiro-page">
+  <iframe
+    class="financeiro-iframe"
+    title="Financeiro"
+    src="{{ finance_iframe_src }}"
+    loading="lazy"
+  ></iframe>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block page_id %}parceiros-acompanhamento{% endblock %}
+
+{% block title %}Acompanhamento - NovaCRM{% endblock %}
+
+{% block content %}
+<div class="kanban-container">
+  <div class="service-tabs-row">
+    <div class="service-tabs">
+      <!-- Populated by JavaScript -->
+    </div>
+    <button
+      type="button"
+      class="kanban-edit-icon-btn"
+      id="acompanhamento-editar-kanban"
+      title="Editar Kanban"
+      aria-label="Editar Kanban"
+    >
+      <i data-lucide="pencil"></i>
+    </button>
+  </div>
+
+  <div class="kanban-board">
+    <div class="kanban-columns">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.PARTNER_KANBAN_DATA = {{ parceiros_kanban | tojson | safe }};
+  window.SOLUCOES_DATA = {{ solucoes | tojson | safe }};
+  window.CURRENT_USER = {{ user | tojson | safe }};
+</script>
+<script src="/portfolio/static/js/lead-slideover.js"></script>
+<script src="/portfolio/static/js/partner-acompanhamento.js"></script>
+{% endblock %}

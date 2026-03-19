@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block page_id %}home{% endblock %}
+
+{% block title %}Home - NovaCRM{% endblock %}
+
+{% block content %}
+{% set total_solucoes = dashboard_metrics.total_solucoes if dashboard_metrics else 0 %}
+{% set total_parceiros = dashboard_metrics.total_parceiros if dashboard_metrics else 0 %}
+{% set total_leads = dashboard_metrics.total_leads if dashboard_metrics else 0 %}
+{% if total_parceiros > 0 %}
+  {% set activation_rate = (total_leads * 100 / total_parceiros) | round(1) %}
+{% else %}
+  {% set activation_rate = 0 %}
+{% endif %}
+{% set valor_meta = meta_config.valor_meta if meta_config else 38000000 %}
+{% set data_meta = meta_config.data_meta if meta_config else '2026-12-31' %}
+{% set valor_acumulado = total_valor_esperado if total_valor_esperado else 0 %}
+{% if valor_meta > 0 %}
+  {% set pct_meta = ((valor_acumulado / valor_meta) * 100) | round(1) %}
+{% else %}
+  {% set pct_meta = 0 %}
+{% endif %}
+{% set pct_bar = [pct_meta, 100] | min %}
+
+<div class="home-layout">
+  <section class="home-dashboard">
+    <div class="home-dashboard-header">
+      <div>
+        <span class="home-dashboard-kicker">Dashboard</span>
+        <h1>Performance das Parcerias</h1>
+        <p>Visão geral de soluções, parceiros ativos e leads em negociação.</p>
+      </div>
+      <div class="home-dashboard-meta">
+        <span>Atualização automática</span>
+      </div>
+    </div>
+
+    <div class="home-goal-card">
+      <div class="home-goal-top">
+        <div class="home-goal-info">
+          <div class="home-goal-icon-wrap">
+            <i data-lucide="trophy"></i>
+          </div>
+          <div>
+            <span class="home-goal-kicker">Meta de Receita</span>
+            <div class="home-goal-values">
+              <span class="home-goal-current" id="goalCurrentDisplay">
+                R$ {{ "{:,.2f}".format(valor_acumulado).replace(",", "X").replace(".", ",").replace("X", ".") }}
+              </span>
+              <span class="home-goal-separator">/</span>
+              <span class="home-goal-target" id="goalTargetDisplay">
+                R$ {{ "{:,.2f}".format(valor_meta).replace(",", "X").replace(".", ",").replace("X", ".") }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="home-goal-actions">
+          <div class="home-goal-date" id="goalDateDisplay" data-raw="{{ data_meta }}">
+            <i data-lucide="calendar"></i>
+            <span>Meta até {{ data_meta[8:10] }}/{{ data_meta[5:7] }}/{{ data_meta[:4] }}</span>
+          </div>
+          <button class="home-goal-edit-btn" id="goalEditBtn" type="button" title="Editar meta"
+                  onclick="document.getElementById('goalModal').classList.add('is-open');">
+            <i data-lucide="pencil"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-goal-bar-wrap">
+        <div class="home-goal-bar-track">
+          <div class="home-goal-bar-fill" id="goalBarFill" style="width: {{ pct_bar }}%;"></div>
+        </div>
+        <div class="home-goal-bar-labels">
+          <span class="home-goal-pct" id="goalPctDisplay">{{ pct_meta }}%</span>
+          <span class="home-goal-remaining">
+            Faltam R$ {{ "{:,.2f}".format([valor_meta - valor_acumulado, 0] | max).replace(",", "X").replace(".", ",").replace("X", ".") }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal de edição (fora do card para não ser cortado pelo overflow) -->
+    <div class="home-goal-modal-overlay" id="goalModal">
+      <div class="home-goal-modal">
+        <div class="home-goal-modal-header">
+          <h3>Editar Meta</h3>
+          <button class="home-goal-modal-close" id="goalModalClose" type="button">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="home-goal-modal-body">
+          <label class="home-goal-field">
+            <span>Valor da Meta (R$)</span>
+            <input type="text" id="goalMetaInput" placeholder="Ex: 38.000.000,00" />
+          </label>
+          <label class="home-goal-field">
+            <span>Data Limite</span>
+            <input type="date" id="goalDateInput" />
+          </label>
+        </div>
+        <div class="home-goal-modal-footer">
+          <button class="home-goal-modal-cancel" id="goalModalCancel" type="button">Cancelar</button>
+          <button class="home-goal-modal-save" id="goalModalSave" type="button">
+            <i data-lucide="check"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-table-card">
+      <div class="home-table-header">
+        <div>
+          <h2>Detalhamento por Ecossistema</h2>
+          <p>Resumo de parceiros e leads por solução.</p>
+        </div>
+      </div>
+
+      <div class="home-table-wrap">
+        <table class="home-table">
+          <thead>
+            <tr>
+              <th>Solução</th>
+              <th class="home-table-right">Valor Esperado</th>
+              <th class="home-table-center">Em Prospecção</th>
+              <th class="home-table-center">Fechados (Sucesso)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if dashboard_solucoes %}
+              {% for solucao in dashboard_solucoes %}
+                {% set leads_process = solucao.leads_em_processo %}
+                {% set leads_sucesso = solucao.leads_sucesso %}
+                {% set valor_esp = solucao.valor_esperado or 0 %}
+                <tr class="home-table-row" style="--dash-accent: {{ solucao.accent }};">
+                  <td>
+                    <div class="home-solution-cell">
+                      <div class="home-solution-icon">
+                        <i data-lucide="{{ solucao.icon }}"></i>
+                      </div>
+                      <div class="home-solution-meta">
+                        <span class="home-solution-name">{{ solucao.name }}</span>
+                        <span class="home-solution-type">{{ solucao.type or 'Solução' }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="home-table-right">
+                    <div class="home-metric-chip" style="justify-content: flex-end;">
+                      <span class="home-metric-pill" style="min-width: 5rem; text-align: right;">
+                        R$ {{ "{:,.2f}".format(valor_esp).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="home-table-center">
+                    <div class="home-metric-chip" style="justify-content: center;">
+                      <span class="home-metric-pill">{{ leads_process }}</span>
+                      <span class="home-metric-label">leads</span>
+                    </div>
+                  </td>
+                  <td class="home-table-center">
+                    <div class="home-metric-chip" style="justify-content: center;">
+                      <span class="home-metric-pill" style="background: hsl(142 71% 45% / 0.12); color: hsl(142 71% 35%);">{{ leads_sucesso }}</span>
+                      <span class="home-metric-label">leads</span>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="home-table-empty">
+                <td colspan="4">
+                  <div class="home-empty-card">
+                    <i data-lucide="search-x"></i>
+                    <div>
+                      <strong>Nenhuma solução cadastrada</strong>
+                      <p>Cadastre uma solução para visualizar o dashboard.</p>
+                    </div>
+                    <a class="home-table-action" href="/portfolio/solucoes">
+                      <i data-lucide="briefcase"></i>
+                      Cadastrar primeira solução
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if dashboard_solucoes %}
+        <div class="home-table-footer">
+          <a class="home-table-link" href="/portfolio/solucoes">
+            Ver todas as {{ dashboard_solucoes | length }} soluções
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  /* ── Elementos ── */
+  var modal     = document.getElementById('goalModal');
+  var editBtn   = document.getElementById('goalEditBtn');
+  var closeBtn  = document.getElementById('goalModalClose');
+  var cancelBtn = document.getElementById('goalModalCancel');
+  var saveBtn   = document.getElementById('goalModalSave');
+  var metaInput = document.getElementById('goalMetaInput');
+  var dateInput = document.getElementById('goalDateInput');
+
+  console.log('[Meta] editBtn:', editBtn, 'modal:', modal);
+  if (!modal || !editBtn) { console.warn('[Meta] Elementos não encontrados'); return; }
+
+  /* ── Valor acumulado (soma dos valores esperados, vem do backend) ── */
+  var NGCUMULADO = {{ valor_acumulado | default(0) }};
+
+  /* ── Helpers ── */
+  function parseMoneyBR(str) {
+    var clean = str.replace(/[R$\s\.]/g, '').replace(',', '.');
+    return parseFloat(clean) || 0;
+  }
+
+  function formatMoneyBR(val) {
+    return 'R$ ' + val.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function formatDateBR(isoDate) {
+    // "2026-12-31" → "31/12/2026"
+    var parts = isoDate.split('-');
+    if (parts.length !== 3) return isoDate;
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+  }
+
+  function formatMoneyInput(str) {
+    // Limpa e reformata enquanto o usuário digita
+    var num = parseMoneyBR(str);
+    if (isNaN(num) || num === 0) return '';
+    return num.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  /* ── Modal open / close ── */
+  function openModal() {
+    // Carrega os valores atuais nos inputs
+    var currentMeta = parseMoneyBR(
+      document.getElementById('goalTargetDisplay').textContent
+    );
+    var currentDate = document.getElementById('goalDateDisplay').getAttribute('data-raw');
+
+    metaInput.value = currentMeta > 0
+      ? currentMeta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : '';
+    dateInput.value = currentDate || '';
+
+    modal.classList.add('is-open');
+    setTimeout(function() { metaInput.focus(); metaInput.select(); }, 100);
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+  }
+
+  editBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  // Fechar ao clicar fora
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+
+  // Fechar com ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+
+  /* ── Formatar input de valor ao sair do campo ── */
+  metaInput.addEventListener('blur', function() {
+    var formatted = formatMoneyInput(metaInput.value);
+    if (formatted) metaInput.value = formatted;
+  });
+
+  /* ── Atualizar UI da barra ── */
+  function updateBarUI(valorMeta, dataMeta) {
+    var pct = valorMeta > 0
+      ? Math.round((NGCUMULADO / valorMeta) * 1000) / 10
+      : 0;
+    var pctBar = Math.min(pct, 100);
+    var faltam = Math.max(valorMeta - NGCUMULADO, 0);
+
+    document.getElementById('goalTargetDisplay').textContent = formatMoneyBR(valorMeta);
+    document.getElementById('goalBarFill').style.width = pctBar + '%';
+    document.getElementById('goalPctDisplay').textContent = pct + '%';
+    document.querySelector('.home-goal-remaining').textContent =
+      'Faltam ' + formatMoneyBR(faltam);
+
+    // Data
+    var dateEl = document.getElementById('goalDateDisplay');
+    dateEl.setAttribute('data-raw', dataMeta);
+    dateEl.querySelector('span').textContent = 'Meta até ' + formatDateBR(dataMeta);
+  }
+
+  /* ── Salvar ── */
+  saveBtn.addEventListener('click', async function() {
+    var valor = parseMoneyBR(metaInput.value);
+    var data  = dateInput.value;
+
+    if (valor <= 0) {
+      metaInput.focus();
+      metaInput.style.borderColor = 'hsl(0 72% 51%)';
+      setTimeout(function() { metaInput.style.borderColor = ''; }, 2000);
+      return;
+    }
+    if (!data) {
+      dateInput.focus();
+      dateInput.style.borderColor = 'hsl(0 72% 51%)';
+      setTimeout(function() { dateInput.style.borderColor = ''; }, 2000);
+      return;
+    }
+
+    saveBtn.disabled = true;
+    var originalHTML = saveBtn.innerHTML;
+    saveBtn.textContent = 'Salvando...';
+
+    try {
+      var resp = await fetch('/portfolio/api/meta', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ valor_meta: valor, data_meta: data })
+      });
+
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function() { return {}; });
+        throw new Error(errData.detail || 'Erro ao salvar');
+      }
+
+      updateBarUI(valor, data);
+      closeModal();
+
+    } catch (err) {
+      alert(err.message || 'Erro ao salvar a meta. Tente novamente.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalHTML;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  });
+
+  /* ── Enter para salvar no modal ── */
+  [metaInput, dateInput].forEach(function(el) {
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveBtn.click();
+      }
+    });
+  });
+
+  console.log('[Meta] Script inicializado com sucesso');
+});
+</script>
+{% endblock %}

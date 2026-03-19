@@ -1,0 +1,195 @@
+{
+  "kpis": [
+    {
+      "id": "1",
+      "label": "Meta do Mes",
+      "value": "85%",
+      "trend": "up",
+      "trend_value": "+5%"
+    },
+    {
+      "id": "2",
+      "label": "Pendencias Criticas",
+      "value": "3",
+      "trend": "down",
+      "trend_value": "-2"
+    },
+    {
+      "id": "3",
+      "label": "Novos Leads",
+      "value": "24",
+      "trend": "up",
+      "trend_value": "+8"
+    },
+    {
+      "id": "4",
+      "label": "Receita Pipeline",
+      "value": "R$ 2.4M",
+      "trend": "up",
+      "trend_value": "+12%"
+    }
+  ],
+  "partners": [
+    {
+      "id": "1",
+      "name": "Tech Solutions Ltda",
+      "razaoSocial": "Tech Solutions Comercio de Tecnologia Ltda",
+      "cnpj": "12.345.678/0001-90",
+      "status": "active",
+      "modules": ["comercial", "indicador"],
+      "address": "Av. Paulista, 1000 - Sao Paulo, SP",
+      "state": "SP",
+      "email": "contato@techsolutions.demo",
+      "phone": "(11) 99999-0001",
+      "createdAt": "2024-01-15",
+      "comercialContract": {
+        "value": 150000,
+        "startDate": "2024-01-01",
+        "endDate": "2024-12-31",
+        "implantationStatus": "completed",
+        "renewalAlert": true
+      },
+      "comercialSolutions": [
+        {
+          "name": "Cloud Computing",
+          "color": "hsl(220 70% 50%)",
+          "icon": "cloud",
+          "status": "active",
+          "startDate": "2024-01-01",
+          "endDate": "2024-12-31",
+          "closedLeads": 12
+        },
+        {
+          "name": "Data Analytics",
+          "color": "hsl(38 92% 50%)",
+          "icon": "trending-up",
+          "status": "negotiation",
+          "startDate": "2024-03-01",
+          "endDate": "2024-12-31",
+          "closedLeads": 5
+        }
+      ],
+      "indicadorData": {
+        "referralLink": "https://novacrm.demo/ref/techsolutions",
+        "leadsGenerated": 45,
+        "leadsNegotiation": 18,
+        "leadsClosed": 10,
+        "conversionRate": 22
+      }
+    },
+    {
+      "id": "2",
+      "name": "Cloud Tech Brasil",
+      "razaoSocial": "Cloud Tech Brasil Tecnologia SA",
+      "cnpj": "23.456.789/0001-01",
+      "status": "active",
+      "modules": ["comercial"],
+      "address": "Rua das Flores, 500 - Belo Horizonte, MG",
+      "state": "MG",
+      "email": "parceria@cloudtech.demo",
+      "phone": "(31) 98888-0002",
+      "createdAt": "2024-02-20",
+      "comercialContract": {
+        "value": 280000,
+        "startDate": "2024-02-01",
+        "endDate": "2025-01-31",
+        "implantationStatus": "in_progress"
+      },
+      "comercialSolutions": [
+        {
+          "name": "Cloud Analytics",
+          "color": "hsl(45 93% 47%)",
+          "icon": "bar-chart",
+          "status": "active",
+          "startDate": "2024-02-01",
+          "endDate": "2025-01-31",
+          "closedLeads": 7
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "DataGrid Solutions",
+      "razaoSocial": "DataGrid Solutions Brasil Ltda",
+      "cnpj": "34.567.890/0001-12",
+      "status": "pending",
+      "modules": ["indicador"],
+      "address": "Av. Brasil, 2500 - Rio de Janeiro, RJ",
+      "state": "RJ",
+      "email": "comercial@datagrid.demo",
+      "phone": "(21) 97777-0003",
+      "createdAt": "2024-03-10",
+      "indicadorData": {
+        "referralLink": "https://novacrm.demo/ref/datagrid",
+        "leadsGenerated": 12,
+        "leadsNegotiation": 4,
+        "leadsClosed": 2,
+        "conversionRate": 8
+      }
+    },
+    {
+      "id": "4",
+      "name": "CyberSafe Sistemas",
+      "razaoSocial": "CyberSafe Sistemas e Solucoes LTDA",
+      "cnpj": "45.678.901/0001-23",
+      "status": "active",
+      "modules": ["comercial", "indicador"],
+      "address": "Rua Industrial, 150 - Curitiba, PR",
+      "state": "PR",
+      "email": "parceiros@cybersafe.demo",
+      "phone": "(41) 96666-0004",
+      "createdAt": "2024-01-05",
+      "comercialContract": {
+        "value": 420000,
+        "startDate": "2024-01-01",
+        "endDate": "2025-06-30",
+        "implantationStatus": "completed"
+      },
+      "comercialSolutions": [
+        {
+          "name": "Cybersecurity",
+          "color": "hsl(199 89% 48%)",
+          "icon": "shield",
+          "status": "active",
+          "startDate": "2024-01-01",
+          "endDate": "2025-06-30",
+          "closedLeads": 15
+        },
+        {
+          "name": "Consulting",
+          "color": "hsl(220 70% 50%)",
+          "icon": "briefcase",
+          "status": "closed",
+          "startDate": "2024-01-01",
+          "endDate": "2024-10-31",
+          "closedLeads": 9
+        }
+      ],
+      "indicadorData": {
+        "referralLink": "https://novacrm.demo/ref/cybersafe",
+        "leadsGenerated": 78,
+        "leadsNegotiation": 26,
+        "leadsClosed": 27,
+        "conversionRate": 35
+      }
+    },
+    {
+      "id": "5",
+      "name": "NetVolt Tecnologia",
+      "razaoSocial": "NetVolt Tecnologia Ltda",
+      "cnpj": "56.789.012/0001-34",
+      "status": "blocked",
+      "modules": [],
+      "address": "Av. Central, 800 - Porto Alegre, RS",
+      "state": "RS",
+      "email": "contato@netvolt.demo",
+      "phone": "(51) 95555-0005",
+      "createdAt": "2023-11-20"
+    }
+  ],
+  "user": {
+    "name": "Usuario Demo",
+    "role": "Coordenador",
+    "initials": "NV"
+  }
+}

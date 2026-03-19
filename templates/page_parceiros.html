@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block page_id %}parceiros{% endblock %}
+
+{% block title %}Parceiros - NovaCRM{% endblock %}
+
+{% block content %}
+<!-- Partners View -->
+<div class="partners-layout" data-view-container="partners">
+  <!-- Master Panel - Partner List -->
+  <div class="master-panel">
+    <!-- Search Header -->
+    <div class="search-header">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input
+          type="text"
+          id="partnerSearch"
+          placeholder="Buscar parceiro..."
+          autocomplete="off"
+        />
+      </div>
+      <div class="applied-filters" data-applied-filters></div>
+      <div class="filter-panel" data-filter-panel>
+        <div class="filter-group">
+          <span class="filter-label">Status</span>
+          <button type="button" class="filter-chip active" data-filter-group="status" data-filter-value="all">Todos</button>
+          <button type="button" class="filter-chip" data-filter-group="status" data-filter-value="active">Ativo</button>
+          <button type="button" class="filter-chip" data-filter-group="status" data-filter-value="pending">Pendente</button>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Modulo</span>
+          <button type="button" class="filter-chip active" data-filter-group="module" data-filter-value="all">Todos</button>
+          <button type="button" class="filter-chip" data-filter-group="module" data-filter-value="comercial">Comercial</button>
+          <button type="button" class="filter-chip" data-filter-group="module" data-filter-value="indicador">Indicacao</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Partner List -->
+    <div class="partner-list">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+
+  <!-- Detail Panel - Partner Details -->
+  <div class="detail-panel">
+    <div class="empty-state">
+      <i data-lucide="users"></i>
+      <h3>Selecione um parceiro</h3>
+      <p>Escolha um parceiro na lista para ver os detalhes</p>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline View (hidden by default) -->
+<div class="hidden" data-view-container="pipeline">
+  <div style="padding: 2rem;">
+    <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">Pipeline de Vendas</h1>
+    <p style="color: hsl(var(--muted-foreground)); margin-bottom: 1.5rem;">Acompanhe suas oportunidades em cada estágio</p>
+
+    <div class="card">
+      <p style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">
+        Módulo Pipeline em desenvolvimento
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Pass partners data to JavaScript
+  window.PARTNERS_DATA = {{ partners | tojson | safe }};
+</script>
+<script src="/portfolio/static/js/lead-slideover.js"></script>
+<script src="/portfolio/static/js/partners.js"></script>
+{% endblock %}

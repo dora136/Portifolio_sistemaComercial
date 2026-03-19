@@ -1,0 +1,55 @@
+﻿{% extends "base.html" %}
+
+{% block page_id %}solucoes{% endblock %}
+
+{% block title %}Soluções - NovaCRM{% endblock %}
+
+{% block content %}
+<!-- Soluções View - Master-Detail Layout -->
+<div class="solucoes-layout">
+  <!-- Master Panel - Solutions List -->
+  <div class="master-panel">
+    <!-- Search Header -->
+    <div class="search-header">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input
+          type="text"
+          id="solucaoSearch"
+          placeholder="Buscar solução..."
+          autocomplete="off"
+        />
+      </div>
+      {% if can_manage_solucoes %}
+      <button class="btn-add-new">
+        <i data-lucide="plus-circle"></i>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Solutions Grid -->
+    <div class="solucoes-grid">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+
+  <!-- Detail Panel - Solution Details -->
+  <div class="detail-panel">
+    <div class="empty-state">
+      <i data-lucide="layers"></i>
+      <h3>Selecione uma solução</h3>
+      <p>Escolha uma solução na lista para ver os detalhes</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Pass solutions data to JavaScript
+  window.SOLUCOES_DATA = {{ solucoes | tojson | safe }};
+  window.CAN_MANAGE_SOLUCOES = {{ can_manage_solucoes | tojson | safe }};
+</script>
+<script src="/portfolio/static/js/lead-slideover.js"></script>
+<script src="/portfolio/static/js/solucoes.js"></script>
+{% endblock %}

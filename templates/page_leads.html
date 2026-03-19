@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block page_id %}leads{% endblock %}
+
+{% block title %}Leads - NovaCRM{% endblock %}
+
+{% block content %}
+<div class="kanban-container">
+  <!-- Service Tabs -->
+  <div class="service-tabs">
+    <!-- Populated by JavaScript -->
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+    <div class="kanban-columns">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Pass leads data to JavaScript
+  window.LEADS_DATA = {{ leads | tojson | safe }};
+  // Pass solutions data to JavaScript (dynamic tabs)
+  window.SOLUCOES_DATA = {{ solucoes | tojson | safe }};
+  // Logged user context (for default representative selection)
+  window.CURRENT_USER = {{ user | tojson | safe }};
+</script>
+<script src="/portfolio/static/js/lead-slideover.js"></script>
+<script src="/portfolio/static/js/leads.js"></script>
+{% endblock %}
